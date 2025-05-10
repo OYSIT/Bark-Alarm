@@ -8,3 +8,5 @@ android.permissions = VIBRATE,WAKE_LOCK,INTERNET
 android.api    = 34
 android.ndk_api= 21
 orientation    = portrait
+source.dir = .
+source.include_exts = py,kv,png,jpg,ttf,ttc,wav,ogg,mp3,txt,json,xml
