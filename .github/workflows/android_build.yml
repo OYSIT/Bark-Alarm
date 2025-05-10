@@ -2,8 +2,8 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]      # bei jedem Commit in main
-  workflow_dispatch:        # manueller Start-Button
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,40 +13,40 @@ jobs:
     # 1 ▸ Repository auschecken
     - uses: actions/checkout@v4
 
-    # 2 ▸ Python 3.11, weil p4a-Wheels dafür verfügbar sind
+    # 2 ▸ Python 3.11 (p4a-kompatible Wheels)
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
-    # 3 ▸ Java, Buildozer, Android-SDK/NDK & System-Libs installieren
+    # 3 ▸ Java, Buildozer, Android-SDK/NDK & System-Libs
     - name: Install Android & Buildozer tools
       run: |
         set -e
         sudo apt-get update
         sudo apt-get install -y \
           openjdk-17-jdk python3-pip unzip wget ccache \
-          autoconf automake libtool libtool-bin libltdl-dev pkg-config
+          autoconf automake libtool libtool-bin libltdl-dev autoconf-archive pkg-config
 
-        pip install --upgrade cython buildozer
+        # Cython auf 0.29.36 fixieren
+        pip install --upgrade cython==0.29.36 buildozer
 
         # ---------- Android command-line tools ----------
         export ANDROID_SDK_ROOT="$HOME/android-sdk"
         mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
         cd "$ANDROID_SDK_ROOT"
-
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline.zip
         unzip -qq cmdline.zip -d cmdline-tools/tmp
         mv cmdline-tools/tmp/cmdline-tools cmdline-tools/latest
         rm cmdline.zip && rmdir cmdline-tools/tmp
 
-        # Pfade sofort aktivieren
+        # Pfade sofort aktiv
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
         echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
         echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
         echo "$ANDROID_SDK_ROOT/platform-tools"           >> "$GITHUB_PATH"
 
-        # ---------- API 34, Build-Tools 34 & NDK 25b ----------
+        # ---------- API 34, Build-Tools 34, NDK 25b ----------
         yes | sdkmanager "platform-tools" \
                          "platforms;android-34" \
                          "build-tools;34.0.0" \
@@ -59,20 +59,20 @@ jobs:
 
         yes | sdkmanager --licenses
 
-    # 4 ▸ SDK-Variablen für Buildozer exportieren
+    # 4 ▸ SDK-Variablen für Buildozer
     - name: Export SDK vars
       run: |
         echo "ANDROID_SDK_HOME=$HOME/android-sdk" >> $GITHUB_ENV
         echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
 
-    # 5 ▸ APK bauen – komplettes Log mitschneiden
+    # 5 ▸ APK bauen – komplettes Log speichern
     - name: Build debug APK
       id: build_apk
       run: |
         set -o pipefail
         buildozer -v android debug 2>&1 | tee buildozer_full.log
 
-    # 6 ▸ Log immer hochladen (auch bei Fehlern)
+    # 6 ▸ Log immer hochladen
     - name: Upload buildozer log
       if: always()
       uses: actions/upload-artifact@v4
@@ -80,7 +80,7 @@ jobs:
         name: buildozer-log
         path: buildozer_full.log
 
-    # 7 ▸ APK nur hochladen, wenn Build erfolgreich war
+    # 7 ▸ APK nur hochladen, wenn Build erfolgreich
     - name: Upload APK
       if: steps.build_apk.outcome == 'success'
       uses: actions/upload-artifact@v4
