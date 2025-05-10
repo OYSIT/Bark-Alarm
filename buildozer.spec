@@ -55,3 +55,13 @@ log_level             = 2
 
 [buildozer]
 warn_on_root = 1
+# ───────────────────────────────────────────
+#  ganz am Ende der Datei einkleben
+#  (oder falls schon vorhanden, nur ergänzen)
+# ───────────────────────────────────────────
+[p4a]
+# p4a soll den aktuellen Entwicklungs-Zweig holen
+p4a.branch = develop
+
+# optional, aber hilfreich bei mehreren NDK-Versionen:
+# android.ndk_path = $ANDROID_SDK_ROOT/ndk/26.1.10909125
