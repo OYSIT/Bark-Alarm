@@ -40,6 +40,7 @@ android.minapi        = 21
 
 android.accept_sdk_license = True
 android.permissions   = INTERNET, WAKE_LOCK
+android.add_python_ignore = Lib/test/.*,Lib/lib2to3/tests/.*
 
 # -----------------------------------------------------------
 #  Ressourcen (optional)
