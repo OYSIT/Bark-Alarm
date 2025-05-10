@@ -44,12 +44,15 @@ jobs:
         yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         yes | sdkmanager --licenses
 
-    # 3 ▸ APK bauen
+    # 3 ▸ APK bauen – Log in Datei umleiten
     - name: Build debug APK
-      run: buildozer -v android debug
+      run: |
+        set -o pipefail
+        buildozer -v android debug 2>&1 | tee buildozer_full.log
 
-    # 4 ▸ Artefakt hochladen
-    - uses: actions/upload-artifact@v4
+    # 4 ▸ Vollständiges Log hochladen
+    - name: Upload buildozer log
+      uses: actions/upload-artifact@v4
       with:
-        name: BellAlarm-APK
-        path: bin/*.apk
+        name: buildozer-log
+        path: buildozer_full.log
