@@ -2,29 +2,31 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main ]      # bei jedem Commit in main
+  workflow_dispatch:        # manueller Start-Button
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+    # 1 ▸ Repository auschecken
     - uses: actions/checkout@v4
 
-    # Python 3.11, weil P4A-Wheels für 3.12 noch fehlen
+    # 2 ▸ Python 3.11, weil p4a-Wheels dafür verfügbar sind
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
+    # 3 ▸ Java, Buildozer, Android-SDK/NDK & System-Libs installieren
     - name: Install Android & Buildozer tools
       run: |
         set -e
         sudo apt-get update
         sudo apt-get install -y \
           openjdk-17-jdk python3-pip unzip wget ccache \
-          autoconf automake libtool pkg-config
+          autoconf automake libtool libtool-bin libltdl-dev pkg-config
 
         pip install --upgrade cython buildozer
 
@@ -32,40 +34,45 @@ jobs:
         export ANDROID_SDK_ROOT="$HOME/android-sdk"
         mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
         cd "$ANDROID_SDK_ROOT"
+
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline.zip
         unzip -qq cmdline.zip -d cmdline-tools/tmp
         mv cmdline-tools/tmp/cmdline-tools cmdline-tools/latest
-        rm cmdline.zip; rmdir cmdline-tools/tmp
+        rm cmdline.zip && rmdir cmdline-tools/tmp
 
+        # Pfade sofort aktivieren
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
         echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
         echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
         echo "$ANDROID_SDK_ROOT/platform-tools"           >> "$GITHUB_PATH"
 
-        # ---------- Plattformen, Build-Tools & NDK ----------
+        # ---------- API 34, Build-Tools 34 & NDK 25b ----------
         yes | sdkmanager "platform-tools" \
                          "platforms;android-34" \
                          "build-tools;34.0.0" \
                          "ndk;25.2.9519653"
 
-        # Legacy-Symlink, damit Buildozer sdkmanager findet
+        # Legacy-Symlink (Buildozer sucht hier)
         mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
         ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
                "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
 
         yes | sdkmanager --licenses
 
+    # 4 ▸ SDK-Variablen für Buildozer exportieren
     - name: Export SDK vars
       run: |
         echo "ANDROID_SDK_HOME=$HOME/android-sdk" >> $GITHUB_ENV
         echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
 
+    # 5 ▸ APK bauen – komplettes Log mitschneiden
     - name: Build debug APK
       id: build_apk
       run: |
         set -o pipefail
         buildozer -v android debug 2>&1 | tee buildozer_full.log
 
+    # 6 ▸ Log immer hochladen (auch bei Fehlern)
     - name: Upload buildozer log
       if: always()
       uses: actions/upload-artifact@v4
@@ -73,6 +80,7 @@ jobs:
         name: buildozer-log
         path: buildozer_full.log
 
+    # 7 ▸ APK nur hochladen, wenn Build erfolgreich war
     - name: Upload APK
       if: steps.build_apk.outcome == 'success'
       uses: actions/upload-artifact@v4
