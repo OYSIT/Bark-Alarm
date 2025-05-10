@@ -2,8 +2,8 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main ]        # bei jedem Commit in main
+  workflow_dispatch:          # manuell per Button
 
 jobs:
   build:
@@ -13,10 +13,10 @@ jobs:
     # 1 ▸ Code holen
     - uses: actions/checkout@v4
 
-    # 2 ▸ Toolchain + SDK installieren
+    # 2 ▸ Toolchain + Android-SDK/NDK + Buildozer installieren
     - name: Install Android & Buildozer tools
       run: |
-        set -e          # brich bei erstem Fehler ab
+        set -e
         sudo apt-get update
         sudo apt-get install -y openjdk-17-jdk python3-pip unzip wget ccache
 
@@ -33,31 +33,49 @@ jobs:
         mv cmdline-tools/tmp/cmdline-tools cmdline-tools/latest
         rmdir cmdline-tools/tmp
 
-        # ▶︎ PATH **JETZT** aktualisieren, damit sdkmanager sofort gefunden wird
-        export PATH="$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools"
-        # und für Folgeschritte verfügbar machen
+        # ---------- Pfade sofort setzen ----------
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
         echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
         echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
         echo "$ANDROID_SDK_ROOT/platform-tools"           >> "$GITHUB_PATH"
 
-        # ---------- Pakete + Lizenzen ----------
-        yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+        # ---------- Pakete & Lizenzen ----------
+        yes | sdkmanager "platform-tools" \
+                         "platforms;android-34" \
+                         "build-tools;34.0.0" \
+                         "ndk;25.2.9519653"
+
+        # Legacy-Pfad anlegen, weil Buildozer dort sucht
+        mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
+        ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+               "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+
         yes | sdkmanager --licenses
 
-    # 3 ▸ APK bauen – Log in Datei umleiten
-    - name: Build debug APK
-      run: |
-        set -o pipefail
-        buildozer -v android debug 2>&1 | tee buildozer_full.log
-
-    # 4 ▸ Vollständiges Log hochladen
-    - name: Upload buildozer log
-      uses: actions/upload-artifact@v4
-      with:
-        name: buildozer-log
-        path: buildozer_full.log
-  
+    # 3 ▸ Umgebungs­variablen für Buildozer exportieren
     - name: Export SDK vars
       run: |
         echo "ANDROID_SDK_HOME=$HOME/android-sdk" >> $GITHUB_ENV
         echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+
+    # 4 ▸ APK bauen – gesamtes Log mitspeichern
+    - name: Build debug APK
+      run: |
+        set -o pipefail
+        buildozer -v android debug 2>&1 | tee buildozer_full.log || true   # niemals abbrechen
+
+    # 5 ▸ Log immer hochladen – auch bei Fehlern
+    - name: Upload buildozer log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: buildozer-log
+        path: buildozer_full.log
+
+    # 6 ▸ APK nur hochladen, wenn Build erfolgreich war
+    - name: Upload APK
+      if: success() && steps.build_debug_apk.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: BellAlarm-APK
+        path: bin/*.apk
