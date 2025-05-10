@@ -24,15 +24,6 @@ fullscreen      = 0
 # -----------------------------------------------------------
 requirements = python3==3.10.12,hostpython3,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,cython==0.29.36,python-telegram-bot==20.7
 
-    python3==3.10.12,\
-    hostpython3==3.10.12,\
-    cython==0.29.36,\
-    kivy==2.2.1,\
-    kivymd,\
-    plyer,\
-    pyjnius==1.5.0,\
-    python-telegram-bot==20.7
-
 # -----------------------------------------------------------
 #  Android-Einstellungen
 # -----------------------------------------------------------
