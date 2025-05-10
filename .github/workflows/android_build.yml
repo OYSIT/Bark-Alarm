@@ -1,9 +1,9 @@
-name: Build Android APK          # läuft bei jedem Push oder manuell
+name: Build Android APK
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:             # „Run workflow“-Button in Actions
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,16 +11,15 @@ jobs:
 
     steps:
     # 1 ▸ Code holen
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    # 2 ▸ Java, Python, Buildozer & Android-CLI installieren
-    - name: Install build tools
+    # 2 ▸ Toolchain + SDK installieren
+    - name: Install Android & Buildozer tools
       run: |
+        set -e          # brich bei erstem Fehler ab
         sudo apt-get update
         sudo apt-get install -y openjdk-17-jdk python3-pip unzip wget ccache
 
-        # Buildozer + Cython
         pip install --upgrade cython buildozer
 
         # ---------- Android command-line tools ----------
@@ -28,38 +27,29 @@ jobs:
         mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
         cd "$ANDROID_SDK_ROOT"
 
-        # Google-Paket laden
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline.zip
-
-        # In temp-Ordner entpacken, dann umbenennen → avoids mv-error
         unzip -qq cmdline.zip -d cmdline-tools/tmp
         rm cmdline.zip
         mv cmdline-tools/tmp/cmdline-tools cmdline-tools/latest
         rmdir cmdline-tools/tmp
 
-        # Pfade für nachfolgende Schritte bekannt machen
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$ANDROID_SDK_ROOT/platform-tools"           >> $GITHUB_PATH
+        # ▶︎ PATH **JETZT** aktualisieren, damit sdkmanager sofort gefunden wird
+        export PATH="$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools"
+        # und für Folgeschritte verfügbar machen
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+        echo "$ANDROID_SDK_ROOT/platform-tools"           >> "$GITHUB_PATH"
 
-        # ---------- Stabile Pakete installieren ----------
-        yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
-              "platform-tools" \
-              "platforms;android-34" \
-              "build-tools;34.0.0"
+        # ---------- Pakete + Lizenzen ----------
+        yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+        yes | sdkmanager --licenses
 
-        # Lizenzen blind akzeptieren
-        yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
-
-    # 3 ▸ APK bauen (Debug)
+    # 3 ▸ APK bauen
     - name: Build debug APK
-      run: |
-        # Buildozer liest ANDROID_SDK_ROOT automatisch
-        buildozer -v android debug
+      run: buildozer -v android debug
 
     # 4 ▸ Artefakt hochladen
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: BellAlarm-APK
         path: bin/*.apk
