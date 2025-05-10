@@ -37,7 +37,7 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y \
           openjdk-17-jdk python3-pip unzip wget ccache \
-          autoconf automake libtool libtool-bin pkg-config
+          autoconf automake libtool libtool-bin libltdl-dev autoconf-archive pkg-config
 
         # Cython fix + Buildozer
         pip install --upgrade cython==0.29.36 buildozer
