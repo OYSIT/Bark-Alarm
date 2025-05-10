@@ -17,6 +17,5 @@ android.accept_sdk_license = True
 # ⇣  feste Pfade OHNE $HOME – auf GitHub heißt HOME immer /home/runner
 android.sdk_path = /home/runner/android-sdk
 android.ndk_path = /home/runner/android-sdk/ndk/25.2.9519653
-android.accept_sdk_license = True
 [buildozer]
 log_level = 2
