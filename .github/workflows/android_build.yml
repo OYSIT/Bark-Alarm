@@ -13,22 +13,33 @@ jobs:
     # 1 ▸ Repository auschecken
     - uses: actions/checkout@v4
 
-    # 2 ▸ Python 3.11 (p4a-kompatible Wheels)
+    # 2 ▸ Buildozer-Cache (spart ~5-10 min)
+    - name: Cache .buildozer
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+        # ein zweiter Key, falls nur kleine Änderungen an der spec
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+
+    # 3 ▸ Python 3.11 (p4a < 2024.10 braucht 3.11)
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
-    # 3 ▸ Java, Buildozer, Android-SDK/NDK & System-Libs
+    # 4 ▸ Java, Buildozer, Android-SDK/NDK & System-Libs
     - name: Install Android & Buildozer tools
       run: |
         set -e
-        sudo apt-get update
+        sudo apt-get update -y
         sudo apt-get install -y \
           openjdk-17-jdk python3-pip unzip wget ccache \
-          autoconf automake libtool libtool-bin libltdl-dev autoconf-archive pkg-config
+          autoconf automake libtool libtool-bin pkg-config
 
-        # Cython auf 0.29.36 fixieren
+        # Cython fix + Buildozer
         pip install --upgrade cython==0.29.36 buildozer
 
         # ---------- Android command-line tools ----------
@@ -41,10 +52,9 @@ jobs:
         rm cmdline.zip && rmdir cmdline-tools/tmp
 
         # Pfade sofort aktiv
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
         echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
         echo "$ANDROID_SDK_ROOT/platform-tools"           >> "$GITHUB_PATH"
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
         # ---------- API 34, Build-Tools 34, NDK 25b ----------
         yes | sdkmanager "platform-tools" \
@@ -59,11 +69,9 @@ jobs:
 
         yes | sdkmanager --licenses
 
-    # 4 ▸ SDK-Variablen für Buildozer
-    - name: Export SDK vars
-      run: |
-        echo "ANDROID_SDK_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+        # Variablen für nachfolgende Steps
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+        echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
 
     # 5 ▸ APK bauen – komplettes Log speichern
     - name: Build debug APK
@@ -85,5 +93,5 @@ jobs:
       if: steps.build_apk.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: BellAlarm-APK
+        name: BarkAlarm-APK
         path: bin/*.apk
