@@ -30,8 +30,9 @@ requirements = \
 android.api              = 34
 android.minapi           = 21
 android.ndk_api          = 21
-android.arch             = arm64-v8a armeabi-v7a        # beide 32/64-Bit
-
+# <<< NEU >>>
+android.archs    = armeabi-v7a, arm64-v8a
+# 32- und 64-bit
 # → WICHTIG für CI/Runner ←
 # Pfade auf den bereits installierten SDK/NDK verweisen,
 # sonst lädt Buildozer alles doppelt und »aidl« fehlt.
