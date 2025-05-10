@@ -20,7 +20,7 @@ jobs:
         path: |
           ~/.buildozer
         # ein zweiter Key, falls nur kleine Änderungen an der spec
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v2
         restore-keys: |
           ${{ runner.os }}-buildozer-
 
