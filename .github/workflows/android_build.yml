@@ -20,18 +20,21 @@ jobs:
         path: |
           ~/.buildozer
           ./.buildozer
-        # ein zweiter Key, falls nur kleine Änderungen an der spec
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v3
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v4
         restore-keys: |
           ${{ runner.os }}-buildozer-
 
-    # 3 ▸ Python 3.11 (p4a < 2024.10 braucht 3.11)
+    # 3 ▸ Sauber starten: alte Buildozer-Artefakte löschen
+    - name: Clean cached .buildozer (CI-only)
+      run: rm -rf ~/.buildozer ./.buildozer
+
+    # 4 ▸ Python 3.11 (p4a < 2024.10 braucht 3.11)
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
-    # 4 ▸ Java, Buildozer, Android-SDK/NDK & System-Libs
+    # 5 ▸ Java, Buildozer, Android-SDK/NDK & System-Libs
     - name: Install Android & Buildozer tools
       run: |
         set -e
@@ -75,14 +78,14 @@ jobs:
         echo "ANDROID_NDK=$ANDROID_SDK_ROOT/ndk/26.1.10909125"      >> "$GITHUB_ENV"
 
 
-    # 5 ▸ APK bauen – komplettes Log speichern
+    # 6 ▸ APK bauen – komplettes Log speichern
     - name: Build debug APK
       id: build_apk
       run: |
         set -o pipefail
         buildozer -v android debug 2>&1 | tee buildozer_full.log
 
-    # 6 ▸ Log immer hochladen
+    # 7 ▸ Log immer hochladen
     - name: Upload buildozer log
       if: always()
       uses: actions/upload-artifact@v4
@@ -90,7 +93,7 @@ jobs:
         name: buildozer-log
         path: buildozer_full.log
 
-    # 7 ▸ APK nur hochladen, wenn Build erfolgreich
+    # 8 ▸ APK nur hochladen, wenn Build erfolgreich
     - name: Upload APK
       if: steps.build_apk.outcome == 'success'
       uses: actions/upload-artifact@v4
