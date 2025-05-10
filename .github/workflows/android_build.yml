@@ -61,7 +61,7 @@ jobs:
         yes | sdkmanager "platform-tools" \
                          "platforms;android-34" \
                          "build-tools;34.0.0" \
-                         "ndk;25.2.9519653"
+                         "ndk;26.1.10909125"
 
         # Legacy-Symlink (Buildozer sucht hier)
         mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
@@ -71,8 +71,9 @@ jobs:
         yes | sdkmanager --licenses
 
         # Variablen für nachfolgende Steps
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
-        echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.1.10909125" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK=$ANDROID_SDK_ROOT/ndk/26.1.10909125"      >> "$GITHUB_ENV"
+
 
     # 5 ▸ APK bauen – komplettes Log speichern
     - name: Build debug APK
