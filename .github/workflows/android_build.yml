@@ -1,21 +1,20 @@
-name: Build Android APK  # ✔ automatisch bei jedem Push
+name: Build Android APK          # läuft bei jedem Push oder manuell
 
-# Wann der Workflow startet
 on:
-  push:                 # bei jedem Commit in main
+  push:
     branches: [ main ]
-  workflow_dispatch:    # per Button „Run workflow“ in Actions
+  workflow_dispatch:             # „Run workflow“-Button in Actions
 
 jobs:
   build:
-    runs-on: ubuntu-latest    # GitHub-Runner (Ubuntu 22.04)
+    runs-on: ubuntu-latest
 
     steps:
-    # 1) Projekt auschecken
+    # 1 ▸ Code holen
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 2) Grundlegende Android- & Buildozer-Werkzeuge installieren
+    # 2 ▸ Java, Python, Buildozer & Android-CLI installieren
     - name: Install build tools
       run: |
         sudo apt-get update
@@ -24,35 +23,41 @@ jobs:
         # Buildozer + Cython
         pip install --upgrade cython buildozer
 
-        # ----- Android command-line tools (CLI) holen -----
-        mkdir -p "$HOME/android-sdk"
-        cd "$HOME/android-sdk"
+        # ---------- Android command-line tools ----------
+        export ANDROID_SDK_ROOT="$HOME/android-sdk"
+        mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+        cd "$ANDROID_SDK_ROOT"
+
+        # Google-Paket laden
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline.zip
-        unzip -qq cmdline.zip
+
+        # In temp-Ordner entpacken, dann umbenennen → avoids mv-error
+        unzip -qq cmdline.zip -d cmdline-tools/tmp
         rm cmdline.zip
-        # Struktur so anlegen, wie sdkmanager es erwartet
-        mkdir -p cmdline-tools/latest
-        mv cmdline-tools/* cmdline-tools/latest/
+        mv cmdline-tools/tmp/cmdline-tools cmdline-tools/latest
+        rmdir cmdline-tools/tmp
 
-        # ----- Umgebungsvariablen setzen -----
-        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-        echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$HOME/android-sdk/platform-tools"           >> $GITHUB_PATH
+        # Pfade für nachfolgende Schritte bekannt machen
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$ANDROID_SDK_ROOT/platform-tools"           >> $GITHUB_PATH
 
-        # ----- Stabile Pakete installieren (API 34, Build-Tools 34.0.0) -----
-        yes | sdkmanager --sdk_root="$HOME/android-sdk" \
-              "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+        # ---------- Stabile Pakete installieren ----------
+        yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
+              "platform-tools" \
+              "platforms;android-34" \
+              "build-tools;34.0.0"
 
-        # Alle Lizenzen automatisch akzeptieren
-        yes | sdkmanager --sdk_root="$HOME/android-sdk" --licenses
+        # Lizenzen blind akzeptieren
+        yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
 
-    # 3) APK bauen (Debug-Variante)
+    # 3 ▸ APK bauen (Debug)
     - name: Build debug APK
       run: |
-        # Buildozer liest ANDROID_SDK_ROOT aus $HOME/android-sdk
+        # Buildozer liest ANDROID_SDK_ROOT automatisch
         buildozer -v android debug
 
-    # 4) Fertige APK als Artefakt hochladen
+    # 4 ▸ Artefakt hochladen
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
