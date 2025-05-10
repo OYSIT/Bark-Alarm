@@ -3,17 +3,18 @@ name: Build Android APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:        # erlaubt Start per Button
+  workflow_dispatch:       # erlaubt manuelles Starten
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4      # Code holen
+    - uses: actions/checkout@v4     # Code holen
 
-    - name: Build with buildozer
-      uses: kivy/buildozer-action@v1 # Android-Toolchain + Buildozer-Docker
+    - name: Build with Buildozer
+      # ✔ RICHTIGER NAME DER ACTION
+      uses: ArtemSBulgakov/buildozer-action@v1   # ← hier lag der Fehler
       with:
         command: "buildozer android debug"
 
@@ -21,4 +22,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: BellAlarm-APK
-        path: bin/*.apk              # Buildozer legt APK hier ab
+        path: bin/*.apk
