@@ -50,6 +50,17 @@ jobs:
             m4 \
             gettext \
             build-essential \
+            # CPython build deps:
+            libssl-dev \
+            libbz2-dev \
+            libsqlite3-dev \
+            libreadline-dev \
+            libffi-dev \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            xz-utils \
+            # Graphics & SDL:
             libgl1-mesa-dev \
             libglu1-mesa-dev \
             libgles2-mesa-dev \
@@ -90,7 +101,7 @@ jobs:
         run: |
           pip install --upgrade buildozer cython==0.29.36
 
-      # 7 ▸ Purge only p4a build dirs
+      # 7 ▸ Purge p4a build dirs
       - name: Purge p4a build dirs
         run: rm -rf ./.buildozer/android/platform/*/build
 
