@@ -43,6 +43,9 @@ jobs:
             autoconf \
             automake \
             libtool \
+            libtool-bin \
+            libltdl-dev \
+            autoconf-archive \
             pkg-config \
             build-essential \
             libgl1-mesa-dev \
