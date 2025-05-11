@@ -66,6 +66,7 @@ jobs:
             libxi-dev \
             libxss-dev \
             libdbus-1-dev
+            m4
           export ANDROID_SDK_ROOT="$HOME/android-sdk"
           mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
           cd "$ANDROID_SDK_ROOT"
