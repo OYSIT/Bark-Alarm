@@ -14,7 +14,6 @@ entrypoint      = telegram_alarm_app_material.py
 
 # Versionsinfo  (genau **eine** Variante verwenden)
 version         = 1.0.0
-# version.regex = __version__ = ['\"](.*)['\"]
 
 orientation     = portrait
 fullscreen      = 0
@@ -22,7 +21,8 @@ fullscreen      = 0
 # -----------------------------------------------------------
 #  Python-Abhängigkeiten
 # -----------------------------------------------------------
-requirements = python3==3.11.12,cython==0.29.36,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
+requirements = python3==3.11.12,hostpython3,cython==0.29.36,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
+
 # -----------------------------------------------------------
 #  Android-Einstellungen
 # -----------------------------------------------------------
@@ -55,9 +55,5 @@ log_level             = 2
 [buildozer]
 warn_on_root = 1
 
-# ───────────────────────────────────────────
-#  p4a-Override
-# ───────────────────────────────────────────
 [p4a]
-# p4a soll den aktuellen Entwicklungs-Zweig holen
 p4a.branch = develop
