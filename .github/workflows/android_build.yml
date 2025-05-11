@@ -14,13 +14,23 @@ jobs:
       # 1 ▸ Checkout repository
       - uses: actions/checkout@v4
 
-      # 2 ▸ Set up Python 3.11
+      # 2 ▸ Clone Kivy recipe sources
+      - name: Clone Kivy recipe sources
+        run: |
+          git clone https://github.com/kivy/kivy.git \
+            --branch 2.2.1 --depth 1 kivy_src
+
+      # 3 ▸ Export P4A_kivy_DIR for python-for-android
+      - name: Export P4A_kivy_DIR
+        run: echo "P4A_kivy_DIR=$GITHUB_WORKSPACE/kivy_src" >> $GITHUB_ENV
+
+      # 4 ▸ Set up Python 3.11
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 3 ▸ Install Android SDK/NDK & system dependencies
+      # 5 ▸ Install Android SDK/NDK & system dependencies
       - name: Install Android SDK/NDK & system dependencies
         run: |
           sudo apt-get update -y
@@ -70,23 +80,23 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.1.10909125" >> "$GITHUB_ENV"
           echo "ANDROID_NDK=$ANDROID_SDK_ROOT/ndk/26.1.10909125" >> "$GITHUB_ENV"
 
-      # 4 ▸ Install Buildozer & Cython
+      # 6 ▸ Install Buildozer & Cython
       - name: Install Buildozer & Cython
         run: |
           pip install --upgrade buildozer cython==0.29.36
 
-      # 5 ▸ Purge only p4a build dirs
+      # 7 ▸ Purge only p4a build dirs
       - name: Purge p4a build dirs
         run: rm -rf ./.buildozer/android/platform/*/build
 
-      # 6 ▸ Build debug APK
+      # 8 ▸ Build debug APK
       - name: Build debug APK
         id: build_apk
         run: |
           set -o pipefail
           buildozer -v android debug 2>&1 | tee buildozer_full.log
 
-      # 7 ▸ Upload buildozer log
+      # 9 ▸ Upload buildozer log
       - name: Upload buildozer log
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,7 +104,7 @@ jobs:
           name: buildozer-log
           path: buildozer_full.log
 
-      # 8 ▸ Upload APK
+      # 10 ▸ Upload APK
       - name: Upload APK
         if: steps.build_apk.outcome == 'success'
         uses: actions/upload-artifact@v4
