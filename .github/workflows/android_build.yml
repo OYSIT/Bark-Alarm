@@ -24,17 +24,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-buildozer-
 
-    # 3 ▸ Alte Buildozer-Artefakte komplett löschen (manuell)
-    - name: Clean cached .buildozer (CI-only)
-      run: rm -rf ~/.buildozer ./.buildozer
-
-    # 4 ▸ Python 3.11 (p4a < 2024.10 braucht 3.11)
+    # 3 ▸ Python 3.11 (p4a < 2024.10 braucht 3.11)
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
-    # 5 ▸ Java, Android SDK/NDK & System-Libs installieren
+    # 4 ▸ Java, Android SDK/NDK & System-Libs installieren
     - name: Install Android SDK/NDK & system dependencies
       run: |
         sudo apt-get update -y
@@ -63,25 +59,25 @@ jobs:
         echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.1.10909125" >> "$GITHUB_ENV"
         echo "ANDROID_NDK=$ANDROID_SDK_ROOT/ndk/26.1.10909125"      >> "$GITHUB_ENV"
 
-    # 6 ▸ Buildozer & Cython installieren
+    # 5 ▸ Buildozer & Cython installieren
     - name: Install Buildozer & Cython
       run: |
         pip install --upgrade buildozer cython==0.29.36
 
-    # 7 ▸ Echten Clean-Build erzwingen
-    - name: Buildozer android clean & purge build dirs
+    # 6 ▸ Clean p4a builds only (keep python-for-android sources)
+    - name: Clean p4a build dirs
       run: |
         buildozer android clean
-        rm -rf ./.buildozer/android/platform/build-*
+        rm -rf ./.buildozer/android/platform/*/build
 
-    # 8 ▸ APK bauen – komplettes Log speichern
+    # 7 ▸ APK bauen – komplettes Log speichern
     - name: Build debug APK
       id: build_apk
       run: |
         set -o pipefail
         buildozer -v android debug 2>&1 | tee buildozer_full.log
 
-    # 9 ▸ Log immer hochladen
+    # 8 ▸ Log immer hochladen
     - name: Upload buildozer log
       if: always()
       uses: actions/upload-artifact@v4
@@ -89,7 +85,7 @@ jobs:
         name: buildozer-log
         path: buildozer_full.log
 
-    # 10 ▸ APK nur hochladen, wenn Build erfolgreich
+    # 9 ▸ APK nur hochladen, wenn Build erfolgreich
     - name: Upload APK
       if: steps.build_apk.outcome == 'success'
       uses: actions/upload-artifact@v4
