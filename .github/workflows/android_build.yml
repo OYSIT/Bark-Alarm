@@ -65,10 +65,9 @@ jobs:
         pip install --upgrade buildozer cython==0.29.36
 
     # 6 ▸ Clean p4a builds only (keep python-for-android sources)
-    - name: Clean p4a build dirs
+    - name: Purge p4a build dirs
       run: |
-        buildozer android clean
-        rm -rf ./.buildozer/android/platform/*/build
+        rm -rf ./.buildozer/android/platform/*/build/build
 
     # 7 ▸ APK bauen – komplettes Log speichern
     - name: Build debug APK
