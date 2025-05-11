@@ -21,7 +21,7 @@ fullscreen      = 0
 # -----------------------------------------------------------
 #  Python-Abhängigkeiten
 # -----------------------------------------------------------
-requirements = python3==3.11.12,hostpython3,cython==0.29.36,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
+requirements = cython==0.29.36,python3==3.11.12,hostpython3,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
 
 # -----------------------------------------------------------
 #  Android-Einstellungen
