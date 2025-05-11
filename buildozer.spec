@@ -23,7 +23,8 @@ fullscreen      = 0
 # -----------------------------------------------------------
 #requirements = cython==0.29.36,hostpython3,python3==3.11.12,kivy @ git+https://github.com/kivy/kivy.git@2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
 #requirements = cython==0.29.36,hostpython3,python3==3.11.12,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
-requirements = cython==0.29.36,python3==3.11.12,hostpython3,kivy @ git+https://github.com/kivy/kivy.git@2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
+#requirements = cython==0.29.36,python3==3.11.12,hostpython3,kivy @ git+https://github.com/kivy/kivy.git@2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
+requirements = hostpython3,cython==0.29.36,python3==3.11.12,kivy @ git+https://github.com/kivy/kivy.git@2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
 
 # -----------------------------------------------------------
 #  Android-Einstellungen
