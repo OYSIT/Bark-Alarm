@@ -28,7 +28,7 @@ fullscreen      = 0
 #requirements = hostpython3,cython==0.29.36,python3==3.11.12,git+https://github.com/kivy/kivy.git@2.2.1#egg=kivy,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
 #requirements = hostpython3,cython==0.29.36,python3==3.11.12,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
 requirements = cython==0.29.36,python3==3.11.12,kivy==2.2.1,kivymd,plyer,pyjnius==1.5.0,python-telegram-bot==20.7
-
+#requirements = hostpython3==3.10.12,python3==3.10.12, cython==0.29.36, kivy==2.2.1, kivymd, plyer, pyjnius==1.5.0, python-telegram-bot==20.7
 # -----------------------------------------------------------
 #  Android-Einstellungen
 # -----------------------------------------------------------
@@ -57,6 +57,9 @@ presplash.filename    = %(source.dir)s/data/presplash.png
 #  Logging
 # -----------------------------------------------------------
 log_level             = 2
+
+# Force GCC-prereq macro definition for Bionic headers:
+android.p4a_global_env = CFLAGS="-D__GNUC_PREREQ(x,y)= ((x<<16)+y) <= (__GNUC__<<16)+__GNUC_MINOR__)"
 
 [buildozer]
 warn_on_root = 1
