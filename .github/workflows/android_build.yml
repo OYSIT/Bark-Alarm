@@ -47,6 +47,8 @@ jobs:
             libltdl-dev \
             autoconf-archive \
             pkg-config \
+            m4 \
+            gettext \
             build-essential \
             libgl1-mesa-dev \
             libglu1-mesa-dev \
@@ -66,7 +68,6 @@ jobs:
             libxi-dev \
             libxss-dev \
             libdbus-1-dev
-            m4
           export ANDROID_SDK_ROOT="$HOME/android-sdk"
           mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
           cd "$ANDROID_SDK_ROOT"
