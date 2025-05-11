@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 5 ▸ Install Android SDK/NDK & system dependencies
+      # 5 ▸ Install Android SDK/NDK & system dependencies (inkl. CPython-Build-Header)
       - name: Install Android SDK/NDK & system dependencies
         run: |
           sudo apt-get update -y
@@ -50,7 +50,6 @@ jobs:
             m4 \
             gettext \
             build-essential \
-            # CPython build deps:
             libssl-dev \
             libbz2-dev \
             libsqlite3-dev \
@@ -60,7 +59,6 @@ jobs:
             libncurses5-dev \
             libncursesw5-dev \
             xz-utils \
-            # Graphics & SDL:
             libgl1-mesa-dev \
             libglu1-mesa-dev \
             libgles2-mesa-dev \
